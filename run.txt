@@ -1,0 +1,40 @@
+● The Gradio demo is complete. Here's everything it gives you:   
+                                                                                                                        ---                                                                                     
+  app_gradio.py — What it does                                                                                                                                                                                                              
+  python app_gradio.py   →   opens at http://localhost:7860                                                                                                                                                                                   Features                                                                                                                                                                                                                                  
+  ┌────────────────────────┬────────────────────────────────────────────────────────────────────────┐
+  │         Panel          │                              What you see                              │
+  ├────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ Upload                 │ Any image (auto-resized to 32×32)                                      │
+  ├────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ Compression Level      │ 4-level dropdown (maps to γ values)                                    │
+  ├────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ 3 images side-by-side  │ Original · TACNet · Baseline (8× upscaled)                             │
+  ├────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ Metrics table          │ BPP, PSNR, SSIM, predicted class + confidence — with winner indicators │
+  ├────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ Probability bar chart  │ TACNet vs Baseline confidence across all 10 CIFAR-10 classes           │
+  ├────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ Error maps             │ Amplified pixel-difference heatmaps for both methods                   │
+  ├────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ How it works accordion │ Full explanation of the pipeline + loss                                │
+  ├────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ References accordion   │ All 5 key papers                                                       │
+  └────────────────────────┴────────────────────────────────────────────────────────────────────────┘
+
+  Correct run order
+
+  # 1. Install
+  pip install -r requirements.txt
+
+  # 2. Train everything (GPU recommended, ~hours on CPU)
+  python main.py --mode run_all
+
+  # OR quick run for CPU
+  python main.py --mode run_all --quick
+
+  # 3. Launch the demo
+  python app_gradio.py
+
+  The demo gracefully handles the case where models aren't trained yet — it shows a clear warning message with the    
+  exact command to run.
