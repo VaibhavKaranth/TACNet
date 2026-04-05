@@ -213,6 +213,122 @@ def plot_ssim_vs_bpp(tacnet_results, baseline_results, save_path):
     print(f"[Visualization] Saved: {save_path}")
 
 
+# ── Plot 6: Confusion Matrix ─────────────────────────────────────────────────
+
+def plot_confusion_matrix(cm_tacnet, cm_baseline, gamma: float, save_path: str):
+    """Side-by-side normalised confusion matrices for TACNet vs Baseline.
+
+    Corresponds to PDF requirement: 'confusion matrix change vs baseline'.
+
+    Args:
+        cm_tacnet  : (10, 10) int array
+        cm_baseline: (10, 10) int array
+        gamma      : rate weight used (for title)
+        save_path  : output file path
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(16, 7))
+    fig.patch.set_facecolor("#f8fafc")
+
+    def _norm(cm):
+        row_sums = cm.sum(axis=1, keepdims=True).clip(1)
+        return cm.astype(float) / row_sums
+
+    for ax, cm, title, color in zip(
+        axes,
+        [_norm(cm_tacnet), _norm(cm_baseline)],
+        [f"TACNet  (β=0.5, γ={gamma})", f"Baseline (β=0, γ={gamma}) — Ablation"],
+        [PALETTE["tacnet"], PALETTE["baseline"]],
+    ):
+        im = ax.imshow(cm, cmap="Blues", vmin=0, vmax=1)
+        ax.set_xticks(range(len(CIFAR10_CLASSES)))
+        ax.set_yticks(range(len(CIFAR10_CLASSES)))
+        ax.set_xticklabels(CIFAR10_CLASSES, rotation=45, ha="right", fontsize=9)
+        ax.set_yticklabels(CIFAR10_CLASSES, fontsize=9)
+        ax.set_xlabel("Predicted", fontsize=11)
+        ax.set_ylabel("True", fontsize=11)
+        ax.set_title(title, fontsize=12, fontweight="bold", color=color)
+
+        # Annotate cells
+        for i in range(len(CIFAR10_CLASSES)):
+            for j in range(len(CIFAR10_CLASSES)):
+                val = cm[i, j]
+                text_color = "white" if val > 0.6 else "black"
+                ax.text(j, i, f"{val:.2f}", ha="center", va="center",
+                        fontsize=7, color=text_color)
+
+        plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+
+    plt.suptitle(
+        "Confusion Matrices on Reconstructed Images\n"
+        "(Ablation: removing task loss β=0 causes accuracy degradation)",
+        fontsize=13, fontweight="bold",
+    )
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"[Visualization] Saved: {save_path}")
+
+
+# ── Plot 7: Paper-ready results table as PNG ──────────────────────────────────
+
+def save_results_table_image(tacnet_results, baseline_results, gamma_values, save_path: str):
+    """Save the Accuracy/PSNR/SSIM results table as a PNG for the conference paper.
+
+    Matches PDF requirement:
+      'Table: Accuracy / PSNR / SSIM at 3 bitrate levels (low/med/high)'
+    """
+    level_labels = {0: "Low Compression", 1: "Medium Compression", 2: "High Compression"}
+    rows = []
+    for i, gamma in enumerate(gamma_values):
+        label = level_labels.get(i, f"γ={gamma}")
+        if i < len(tacnet_results) and i < len(baseline_results):
+            t = tacnet_results[i]
+            b = baseline_results[i]
+            rows.append([label, "TACNet (β=0.5)",
+                         f"{t['bpp']:.3f}", f"{t['accuracy']:.1f}%",
+                         f"{t['psnr']:.2f}", f"{t['ssim']:.4f}"])
+            rows.append(["",    "Baseline (β=0) — Ablation",
+                         f"{b['bpp']:.3f}", f"{b['accuracy']:.1f}%",
+                         f"{b['psnr']:.2f}", f"{b['ssim']:.4f}"])
+
+    col_labels = ["Bitrate Level", "Method", "BPP ↓", "Accuracy ↑", "PSNR dB ↑", "SSIM ↑"]
+
+    fig, ax = plt.subplots(figsize=(13, max(3, 1 + 0.55 * len(rows))))
+    ax.axis("off")
+    fig.patch.set_facecolor("#f8fafc")
+
+    table = ax.table(
+        cellText=rows,
+        colLabels=col_labels,
+        cellLoc="center",
+        loc="center",
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(11)
+    table.scale(1.0, 1.8)
+
+    # Style header
+    for j in range(len(col_labels)):
+        table[0, j].set_facecolor("#2563EB")
+        table[0, j].set_text_props(color="white", fontweight="bold")
+
+    # Style TACNet rows (odd rows in each pair)
+    for i in range(1, len(rows) + 1):
+        is_tacnet = (i % 2 == 1)
+        for j in range(len(col_labels)):
+            table[i, j].set_facecolor("#dbeafe" if is_tacnet else "#fee2e2")
+
+    plt.title(
+        "TACNet vs Baseline — CIFAR-10 Compression Results\n"
+        "(Baseline = Ablation: task loss β removed)",
+        fontsize=13, fontweight="bold", pad=16,
+    )
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"[Visualization] Saved: {save_path}")
+
+
 # ── Console results table ─────────────────────────────────────────────────────
 
 def print_results_table(tacnet_results, baseline_results, gamma_values):

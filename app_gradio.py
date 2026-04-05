@@ -45,7 +45,7 @@ from src.data.dataset import CIFAR10_CLASSES
 config = Config()
 device = get_device()
 
-# Compression levels → γ values
+# Compression levels → γ values  (matches Config.gamma_values: 3 levels per PDF)
 GAMMA_VALUES = [0.0001, 0.001, 0.01, 0.1]
 LEVEL_NAMES  = [
     "Low Compression  (γ=0.0001)  — highest quality",
@@ -53,6 +53,8 @@ LEVEL_NAMES  = [
     "High Compression  (γ=0.01)",
     "Very High Compression  (γ=0.1)  — lowest quality",
 ]
+# Primary trained levels (matching Config.gamma_values = [0.0001, 0.001, 0.01])
+PRIMARY_GAMMAS = [0.0001, 0.001, 0.01]
 
 # ── Model loading ─────────────────────────────────────────────────────────────
 

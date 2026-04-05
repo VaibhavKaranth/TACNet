@@ -109,6 +109,22 @@ def compute_bpp_theoretical(
 
 # ── Full model evaluation ─────────────────────────────────────────────────────
 
+def compute_confusion_matrix(all_preds: np.ndarray, all_labels: np.ndarray, num_classes: int = 10) -> np.ndarray:
+    """Compute NxN confusion matrix from predictions and ground truth labels.
+
+    Args:
+        all_preds  : 1-D int array of predicted class indices
+        all_labels : 1-D int array of ground truth class indices
+        num_classes: number of classes (default 10 for CIFAR-10)
+    Returns:
+        cm: (num_classes, num_classes) int array, cm[true][pred]
+    """
+    cm = np.zeros((num_classes, num_classes), dtype=np.int64)
+    for true, pred in zip(all_labels, all_preds):
+        cm[true][pred] += 1
+    return cm
+
+
 @torch.no_grad()
 def evaluate_model(
     model,
@@ -155,10 +171,12 @@ def evaluate_model(
     all_preds  = np.array(all_preds)
     all_labels = np.array(all_labels)
     accuracy   = 100.0 * (all_preds == all_labels).mean()
+    cm         = compute_confusion_matrix(all_preds, all_labels)
 
     return {
-        "accuracy": float(accuracy),
-        "psnr":     float(np.mean(all_psnr)),
-        "ssim":     float(np.mean(all_ssim)),
-        "bpp":      float(np.mean(all_bpp)),
+        "accuracy":          float(accuracy),
+        "psnr":              float(np.mean(all_psnr)),
+        "ssim":              float(np.mean(all_ssim)),
+        "bpp":               float(np.mean(all_bpp)),
+        "confusion_matrix":  cm,
     }

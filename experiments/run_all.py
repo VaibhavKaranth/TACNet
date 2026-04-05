@@ -33,6 +33,8 @@ from src.utils.visualization import (
     plot_ssim_vs_bpp,
     plot_qualitative_grid,
     plot_training_history,
+    plot_confusion_matrix,
+    save_results_table_image,
     print_results_table,
 )
 
@@ -55,9 +57,11 @@ def run_all(config: Config = None, quick: bool = False):
         config = Config()
 
     if quick:
-        config.clf_epochs = config.quick_clf_epochs
-        config.cmp_epochs = config.quick_cmp_epochs
+        config.clf_epochs  = config.quick_clf_epochs
+        config.cmp_epochs  = config.quick_cmp_epochs
+        config.gamma_values = config.quick_gamma_values
         print(f"[Quick mode] Epochs → classifier={config.clf_epochs}, compressor={config.cmp_epochs}")
+        print(f"[Quick mode] gamma_values → {config.gamma_values}")
 
     _set_seed(config.seed)
     device = get_device()
@@ -199,11 +203,21 @@ def run_all(config: Config = None, quick: bool = False):
         baseline_results.append(res)
         print(f"    Acc={res['accuracy']:.2f}%  BPP={res['bpp']:.3f}  "
               f"PSNR={res['psnr']:.2f}dB  SSIM={res['ssim']:.4f}")
+        idx = next((i for i, (_, g) in enumerate(trained_tacnets) if g == gamma), None)
+        if idx is not None and idx < len(tacnet_results):
+            acc_drop = tacnet_results[idx]["accuracy"] - res["accuracy"]
+            print(f"    [Ablation] Removing task loss (β=0) → accuracy drop: {acc_drop:+.2f}%")
 
-    # Save raw results as JSON
+    # Save raw results as JSON (exclude numpy confusion matrices — not JSON-serialisable)
+    def _serialisable(r):
+        return {k: v for k, v in r.items() if k != "confusion_matrix"}
+
     results_json = os.path.join(config.results_dir, "results.json")
     with open(results_json, "w") as f:
-        json.dump({"tacnet": tacnet_results, "baseline": baseline_results}, f, indent=2)
+        json.dump({
+            "tacnet":   [_serialisable(r) for r in tacnet_results],
+            "baseline": [_serialisable(r) for r in baseline_results],
+        }, f, indent=2)
     print(f"\n[Phase 3] Results saved: {results_json}")
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -234,7 +248,25 @@ def run_all(config: Config = None, quick: bool = False):
         os.path.join(config.results_dir, "qualitative_grid.png"),
     )
 
-    # Print ASCII table
+    # Confusion matrices (ablation: β=0 vs β=0.5)
+    for i, gamma in enumerate(config.gamma_values):
+        if i < len(tacnet_results) and i < len(baseline_results):
+            cm_t = tacnet_results[i].get("confusion_matrix")
+            cm_b = baseline_results[i].get("confusion_matrix")
+            if cm_t is not None and cm_b is not None:
+                g_tag = f"{gamma:.4f}".replace(".", "_")
+                plot_confusion_matrix(
+                    cm_t, cm_b, gamma,
+                    os.path.join(config.results_dir, f"confusion_matrix_gamma{g_tag}.png"),
+                )
+
+    # Paper-ready results table as PNG
+    save_results_table_image(
+        tacnet_results, baseline_results, config.gamma_values,
+        os.path.join(config.results_dir, "results_table.png"),
+    )
+
+    # Print ASCII table to console
     print_results_table(tacnet_results, baseline_results, config.gamma_values)
 
     # ══════════════════════════════════════════════════════════════════════════

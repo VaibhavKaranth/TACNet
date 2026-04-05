@@ -39,11 +39,16 @@ class Config:
     gamma: float = 0.01  # rate proxy loss weight
 
     # ── Multi-Rate Experiments ────────────────────────────────────────────────
-    # Two γ values → 2 operating points (faster training)
+    # Three γ values → 3 operating points (low / medium / high compression)
+    # Matches PDF requirement: "Table at 3 bitrate levels"
     gamma_values: List[float] = field(
-        default_factory=lambda: [0.001, 0.01]
+        default_factory=lambda: [0.0001, 0.001, 0.01]
     )
 
     # ── Quick Mode (CPU-friendly reduced epochs) ──────────────────────────────
     quick_clf_epochs: int = 15
     quick_cmp_epochs: int = 8
+    # Quick mode uses only 2 gamma values to save time
+    quick_gamma_values: List[float] = field(
+        default_factory=lambda: [0.001, 0.01]
+    )
