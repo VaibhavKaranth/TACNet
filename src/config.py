@@ -17,7 +17,7 @@ class Config:
     # ── Dataset ───────────────────────────────────────────────────────────────
     num_classes: int = 10
     image_size: int = 32
-    num_workers: int = 4
+    num_workers: int = 0
     seed: int = 42
 
     # ── Classifier Training ───────────────────────────────────────────────────
@@ -25,12 +25,12 @@ class Config:
     clf_lr: float = 0.1
     clf_momentum: float = 0.9
     clf_weight_decay: float = 5e-4
-    clf_batch_size: int = 128
+    clf_batch_size: int = 64
 
     # ── Compressor Training ───────────────────────────────────────────────────
     cmp_epochs: int = 100
     cmp_lr: float = 1e-3
-    cmp_batch_size: int = 128
+    cmp_batch_size: int = 16
     cmp_latent_channels: int = 8     # C: controls latent spatial depth
 
     # ── Loss Weights ──────────────────────────────────────────────────────────
@@ -39,11 +39,11 @@ class Config:
     gamma: float = 0.01  # rate proxy loss weight
 
     # ── Multi-Rate Experiments ────────────────────────────────────────────────
-    # Four γ values → 4 operating points on the BPP-Accuracy curve
+    # Two γ values → 2 operating points (faster training)
     gamma_values: List[float] = field(
-        default_factory=lambda: [0.0001, 0.001, 0.01, 0.1]
+        default_factory=lambda: [0.001, 0.01]
     )
 
     # ── Quick Mode (CPU-friendly reduced epochs) ──────────────────────────────
     quick_clf_epochs: int = 15
-    quick_cmp_epochs: int = 30
+    quick_cmp_epochs: int = 8

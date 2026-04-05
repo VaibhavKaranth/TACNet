@@ -13,6 +13,11 @@ import os
 import sys
 import io
 
+# Disable Gradio analytics and update checks (prevents network hang on import)
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["GRADIO_SERVER_NAME"] = "127.0.0.1"
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -291,8 +296,6 @@ CSS = """
 
 with gr.Blocks(
     title="TACNet — Task-Aware Image Compression",
-    css=CSS,
-    theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate"),
 ) as demo:
 
     # ── Header ────────────────────────────────────────────────────────────────
@@ -334,7 +337,6 @@ with gr.Blocks(
     with gr.Row():
         out_prob_chart = gr.Image(
             label="📊 Classifier Confidence on Reconstructed Images",
-            show_download_button=True,
         )
 
     with gr.Row():
@@ -404,8 +406,10 @@ python main.py --mode run_all --quick   # fast test run
 
 if __name__ == "__main__":
     demo.launch(
-        server_name="0.0.0.0",   # accessible on local network
+        server_name="127.0.0.1",
         server_port=7860,
-        share=False,             # set True to get a public Gradio link
-        inbrowser=True,          # auto-open browser
+        share=False,
+        inbrowser=False,
+        css=CSS,
+        theme=gr.themes.Soft(primary_hue="blue", neutral_hue="slate"),
     )

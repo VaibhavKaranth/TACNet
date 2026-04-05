@@ -15,7 +15,7 @@ def get_device() -> torch.device:
     if torch.cuda.is_available():
         device = torch.device("cuda")
         props = torch.cuda.get_device_properties(0)
-        print("[Device] ── GPU (CUDA) detected ──────────────────────────────")
+        print("[Device] -- GPU (CUDA) detected ------------------------------------------")
         print(f"[Device]   Name  : {props.name}")
         print(f"[Device]   VRAM  : {props.total_memory / 1e9:.1f} GB")
         print(f"[Device]   CUDA  : {torch.version.cuda}")
@@ -23,11 +23,11 @@ def get_device() -> torch.device:
             print(f"[Device]   Multi : {torch.cuda.device_count()} GPUs available (using cuda:0)")
     elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         device = torch.device("mps")
-        print("[Device] ── Apple MPS detected ──────────────────────────────")
+        print("[Device] -- Apple MPS detected ------------------------------------------")
     else:
         device = torch.device("cpu")
         n_cores = multiprocessing.cpu_count()
-        print("[Device] ── CPU only ────────────────────────────────────────")
+        print("[Device] -- CPU only ----------------------------------------------------")
         print(f"[Device]   Cores : {n_cores}")
         print("[Device]   Note  : Training will be slow. Use --quick to reduce epochs.")
 

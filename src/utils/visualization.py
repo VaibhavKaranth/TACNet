@@ -158,9 +158,9 @@ def plot_qualitative_grid(
 def plot_training_history(history: dict, title: str, save_path: str):
     """Loss component curves over training epochs."""
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-    epochs = range(1, len(history["loss"]) + 1)
+    epochs = range(1, len(history["total"]) + 1)
 
-    axes[0].plot(epochs, history["loss"], color="#1e293b", linewidth=2)
+    axes[0].plot(epochs, history["total"], color="#1e293b", linewidth=2)
     axes[0].set_title("Total Loss")
 
     axes[1].plot(epochs, history["rec"],  label="Reconstruction", color="#16a34a", linewidth=2)

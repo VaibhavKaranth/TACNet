@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Data & checkpoints (large files — download/generate locally)
+/data/
+/checkpoints/
+
+# Results & outputs
+results/
+gradio_out.txt
+*.txt.bak
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+=4.0.0
+*.log

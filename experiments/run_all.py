@@ -90,10 +90,10 @@ def run_all(config: Config = None, quick: bool = False):
         )
         # Plot classifier training curves
         plot_training_history(
-            {"loss": clf_history["train_loss"],
-             "rec":  clf_history["train_loss"],
-             "task": clf_history["val_loss"],
-             "rate": [0.0] * len(clf_history["train_loss"])},
+            {"total": clf_history["train_loss"],
+             "rec":   clf_history["train_loss"],
+             "task":  clf_history["val_loss"],
+             "rate":  [0.0] * len(clf_history["train_loss"])},
             "Classifier Training History",
             os.path.join(config.results_dir, "classifier_training.png"),
         )

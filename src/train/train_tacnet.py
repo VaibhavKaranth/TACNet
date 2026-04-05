@@ -48,7 +48,7 @@ def train_tacnet(
     )
     criterion = RDTLoss(alpha=config.alpha, beta=beta, gamma=gamma)
 
-    history = {"loss": [], "rec": [], "task": [], "rate": []}
+    history = {"total": [], "rec": [], "task": [], "rate": []}
     os.makedirs(config.checkpoints_dir, exist_ok=True)
 
     epochs = config.cmp_epochs
@@ -56,7 +56,7 @@ def train_tacnet(
     for epoch in range(epochs):
         model.train_mode()   # compressor train, classifier eval
 
-        epoch_totals = {"loss": 0.0, "rec": 0.0, "task": 0.0, "rate": 0.0}
+        epoch_totals = {"total": 0.0, "rec": 0.0, "task": 0.0, "rate": 0.0}
         n_batches = 0
 
         pbar = tqdm(
@@ -92,7 +92,7 @@ def train_tacnet(
         if (epoch + 1) % 10 == 0 or epoch == 0:
             print(
                 f"  [{experiment_name}] Epoch {epoch+1:3d} | "
-                f"Loss={history['loss'][-1]:.4f}  "
+                f"Loss={history['total'][-1]:.4f}  "
                 f"Rec={history['rec'][-1]:.4f}  "
                 f"Task={history['task'][-1]:.4f}  "
                 f"Rate={history['rate'][-1]:.4f}"

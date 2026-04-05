@@ -17,6 +17,7 @@ Key design point:
 import os
 import torch
 import torch.nn as nn
+from torch.utils.checkpoint import checkpoint
 
 from .compressor import ImageCompressor
 from .classifier import build_resnet18_cifar
@@ -115,8 +116,9 @@ class TACNet(nn.Module):
         # Gradients flow through x_hat_norm → x_hat → decoder/encoder weights
         x_hat_norm = self._normalize(x_hat)
 
-        # Step 3: classify (classifier params are frozen; gradients flow through input)
-        logits = self.classifier(x_hat_norm)
+        # Step 3: classify with gradient checkpointing to save memory
+        # Recomputes activations during backward instead of storing them
+        logits = checkpoint(self.classifier, x_hat_norm, use_reentrant=False)
 
         return x_hat, z, z_hat, logits
 

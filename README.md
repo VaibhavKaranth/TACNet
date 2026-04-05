@@ -22,12 +22,11 @@ L = α · MSE(x̂, x)  +  β · CE(Classifier(x̂), y)  +  γ · mean(|z|)
 ## Results
 
 At equal BPP, TACNet yields **higher classification accuracy** than reconstruction-only baselines.
-A small PSNR drop is acceptable — the rate–accuracy curve is the key publishable result.
 
-| Method   | BPP  | Accuracy | PSNR  | SSIM  |
-|----------|------|----------|-------|-------|
-| TACNet   | ~1.5 | **higher** | slightly lower | similar |
-| Baseline | ~1.5 | lower    | slightly higher | similar |
+| Method   | Accuracy on Reconstructed Images | Notes |
+|----------|----------------------------------|-------|
+| **TACNet** (β=0.5) | ~64–65% | Task loss guides encoder |
+| Baseline (β=0.0) | ~36–38% | Reconstruction only |
 
 ---
 
@@ -46,19 +45,119 @@ x [3×32×32]
 
 ---
 
-## Quickstart
+## Setup
+
+### Requirements
+
+- Python 3.9 or newer
+- Windows / Linux / macOS
+- No GPU required (CPU training works)
+
+### 1. Clone the repository
 
 ```bash
-# 1. Install
-pip install -r requirements.txt
-
-# 2. Train (GPU auto-detected; use --quick on CPU)
-python main.py --mode run_all
-python main.py --mode run_all --quick   # reduced epochs for CPU
-
-# 3. Launch interactive demo
-python app_gradio.py                    # → http://localhost:7860
+git clone https://github.com/VaibhavKaranth/TACNet.git
+cd TACNet
 ```
+
+### 2. Create a virtual environment
+
+```bash
+python -m venv venv
+```
+
+Activate it:
+
+**Windows (Command Prompt):**
+```cmd
+venv\Scripts\activate
+```
+
+**Windows (PowerShell):**
+```powershell
+venv\Scripts\Activate.ps1
+```
+
+**Linux / macOS:**
+```bash
+source venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install gradio matplotlib numpy pillow
+```
+
+> For NVIDIA GPU support, get the right torch install command from [pytorch.org](https://pytorch.org/get-started/locally/).
+
+---
+
+## Training
+
+Train the full pipeline (classifier + compressor):
+
+```bash
+python experiments/run_all.py
+```
+
+This runs 4 phases automatically:
+1. **Classifier** — trains ResNet-18 on CIFAR-10
+2. **TACNet Compressor** — trains with task-aware loss (β=0.5)
+3. **Baseline Compressor** — trains without task loss (β=0.0)
+4. **Evaluation & Visualization** — saves plots to `results/`
+
+Checkpoints are saved to `checkpoints/`. CIFAR-10 data downloads automatically on first run.
+
+### Adjust hyperparameters
+
+Edit `src/config.py`:
+
+```python
+clf_epochs       = 10             # Classifier training epochs
+quick_cmp_epochs = 8              # Compressor epochs
+gamma_values     = [0.001, 0.01]  # Rate penalty levels to train
+cmp_batch_size   = 16             # Reduce if you run out of RAM
+```
+
+---
+
+## Running the Demo
+
+### Option A — Windows (easiest)
+
+Double-click **`run_demo.bat`** from File Explorer.  
+Then open **http://127.0.0.1:7860** in Chrome or Edge.
+
+### Option B — Command Prompt
+
+```cmd
+venv\Scripts\activate
+set GRADIO_ANALYTICS_ENABLED=False
+set HF_HUB_OFFLINE=1
+python app_gradio.py
+```
+
+### Option C — Linux / macOS
+
+```bash
+source venv/bin/activate
+GRADIO_ANALYTICS_ENABLED=False HF_HUB_OFFLINE=1 python app_gradio.py
+```
+
+Then open **http://127.0.0.1:7860** in your browser.
+
+### Using the Demo
+
+1. Upload any image (resized to 32×32 internally)
+2. Choose a compression level (Low / Medium / High / Very High)
+3. Click **Compress & Compare**
+4. View results:
+   - Side-by-side: Original vs TACNet vs Baseline
+   - Metrics table: PSNR, SSIM, BPP, predicted class & confidence
+   - Classifier confidence bar chart
+   - Error difference maps
 
 ---
 
@@ -66,9 +165,10 @@ python app_gradio.py                    # → http://localhost:7860
 
 ```
 TACNet/
-├── main.py                 CLI entry point
 ├── app_gradio.py           Interactive Gradio demo
-├── vision.md               Full project vision & architecture
+├── run_demo.bat            Windows one-click demo launcher
+├── experiments/
+│   └── run_all.py          End-to-end training pipeline (4 phases)
 ├── src/
 │   ├── config.py           All hyperparameters
 │   ├── data/dataset.py     CIFAR-10 loaders (auto-download)
@@ -77,10 +177,10 @@ TACNet/
 │   │   ├── compressor.py   Encoder / STE Quantizer / Decoder
 │   │   └── tacnet.py       Full pipeline
 │   ├── losses/rdt_loss.py  Rate–Distortion–Task loss
-│   ├── train/              Classifier + compressor training
+│   ├── train/              Classifier + compressor training loops
 │   ├── evaluate/metrics.py PSNR · SSIM · BPP · Accuracy
 │   └── utils/              Device detection · Visualization
-└── experiments/run_all.py  End-to-end pipeline (4 phases)
+└── checkpoints/            Saved model weights (after training)
 ```
 
 ---
@@ -89,19 +189,22 @@ TACNet/
 
 | Command | Description |
 |---------|-------------|
-| `python main.py --mode run_all` | Full pipeline |
-| `python main.py --mode run_all --quick` | Fast CPU run |
-| `python main.py --mode train_classifier` | Phase 1 only |
-| `python main.py --mode train_tacnet --gamma 0.01 --beta 0.5` | One TACNet model |
-| `python main.py --mode train_tacnet --gamma 0.01 --beta 0.0` | One baseline model |
-| `python main.py --mode evaluate --name tacnet_gamma0_0100` | Evaluate saved model |
-| `python app_gradio.py` | Launch demo UI |
+| `python experiments/run_all.py` | Full training pipeline |
+| `python app_gradio.py` | Launch interactive demo |
+
+---
+
+## Windows Notes
+
+- `num_workers=0` is set in all DataLoaders — required to avoid multiprocessing crashes on Windows
+- Run with `set PYTHONUTF8=1` if you see Unicode/encoding errors in the terminal
+- `run_demo.bat` handles all environment variables automatically
 
 ---
 
 ## Dataset
 
-CIFAR-10 — downloaded automatically on first run via `torchvision`.
+CIFAR-10 — downloaded automatically on first run via `torchvision`.  
 50,000 train · 10,000 test · 10 classes · 32×32 pixels.
 
 ---

@@ -20,7 +20,7 @@ CIFAR10_STD  = (0.2470, 0.2435, 0.2616)
 def get_cifar10_loaders(
     data_root: str,
     batch_size: int,
-    num_workers: int = 4,
+    num_workers: int = 0,
     val_split: float = 0.1,
 ):
     """CIFAR-10 loaders with standard normalisation and augmentation.
@@ -64,15 +64,15 @@ def get_cifar10_loaders(
 
     train_loader = DataLoader(
         train_subset, batch_size=batch_size, shuffle=True,
-        num_workers=num_workers, pin_memory=True,
+        num_workers=num_workers, pin_memory=False,
     )
     val_loader = DataLoader(
         val_subset_clean, batch_size=batch_size, shuffle=False,
-        num_workers=num_workers, pin_memory=True,
+        num_workers=num_workers, pin_memory=False,
     )
     test_loader = DataLoader(
         test_set, batch_size=batch_size, shuffle=False,
-        num_workers=num_workers, pin_memory=True,
+        num_workers=num_workers, pin_memory=False,
     )
     return train_loader, val_loader, test_loader
 
@@ -82,7 +82,7 @@ def get_cifar10_loaders(
 def get_raw_cifar10_loaders(
     data_root: str,
     batch_size: int,
-    num_workers: int = 4,
+    num_workers: int = 0,
 ):
     """CIFAR-10 loaders with images in [0, 1] — no normalisation.
 
@@ -100,11 +100,11 @@ def get_raw_cifar10_loaders(
 
     train_loader = DataLoader(
         train_set, batch_size=batch_size, shuffle=True,
-        num_workers=num_workers, pin_memory=True,
+        num_workers=num_workers, pin_memory=False,
     )
     test_loader = DataLoader(
         test_set, batch_size=batch_size, shuffle=False,
-        num_workers=num_workers, pin_memory=True,
+        num_workers=num_workers, pin_memory=False,
     )
     return train_loader, test_loader
 
