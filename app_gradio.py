@@ -129,14 +129,14 @@ def _to_display(tensor: torch.Tensor, scale: int = 8) -> Image.Image:
 
 # ── Charts ────────────────────────────────────────────────────────────────────
 
-# Shared palette
-BLUE   = "#4F8EF7"
-RED    = "#F7604F"
-BG     = "#0F1117"
-CARD   = "#1A1D27"
-TEXT   = "#E8EAF0"
-MUTED  = "#8B8FA8"
-GRID   = "#2A2D3E"
+# Shared palette — grey / black
+BLUE   = "#A0A8B8"   # steel grey for TACNet
+RED    = "#C0C0C0"   # light grey for Baseline
+BG     = "#0D0D0D"
+CARD   = "#1A1A1A"
+TEXT   = "#E4E4E4"
+MUTED  = "#6B6B6B"
+GRID   = "#2C2C2C"
 
 
 def _set_dark_style():
@@ -165,8 +165,8 @@ def _prob_chart(logits_t: torch.Tensor, logits_b: torch.Tensor, gamma: float) ->
     x = np.arange(len(CIFAR10_CLASSES))
     w = 0.36
 
-    bars_t = ax.bar(x - w / 2, probs_t, w, color=BLUE,  alpha=0.9, zorder=3, label="TACNet")
-    bars_b = ax.bar(x + w / 2, probs_b, w, color=RED,   alpha=0.9, zorder=3, label="Baseline")
+    bars_t = ax.bar(x - w / 2, probs_t, w, color="#E4E4E4", alpha=0.92, zorder=3, label="TACNet")
+    bars_b = ax.bar(x + w / 2, probs_b, w, color="#555555", alpha=0.92, zorder=3, label="Baseline")
 
     # Highlight winning bar
     top_t = int(probs_t.argmax())
@@ -190,8 +190,8 @@ def _prob_chart(logits_t: torch.Tensor, logits_b: torch.Tensor, gamma: float) ->
 
     legend = ax.legend(
         handles=[
-            mpatches.Patch(color=BLUE, label="TACNet"),
-            mpatches.Patch(color=RED,  label="Baseline"),
+            mpatches.Patch(color="#E4E4E4", label="TACNet"),
+            mpatches.Patch(color="#555555", label="Baseline"),
         ],
         fontsize=11, framealpha=0.15, facecolor=CARD, edgecolor=GRID,
         loc="upper right",
@@ -317,17 +317,18 @@ def run_demo(pil_image, level_name):
 CSS = """
 /* ── Page background ── */
 body, .gradio-container {
-    background: #0a0c14 !important;
+    background: #0d0d0d !important;
     font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
 /* ── Hero header ── */
 .hero-wrap {
-    background: linear-gradient(135deg, #0f1629 0%, #111827 40%, #0d1b2a 100%);
-    border: 1px solid #1e293b;
+    background: #111111;
+    border: 1px solid #2a2a2a;
+    border-top: 3px solid #3a3a3a;
     border-radius: 16px;
     padding: 2.4rem 2rem 2rem;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.4rem;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -335,56 +336,50 @@ body, .gradio-container {
 .hero-wrap::before {
     content: '';
     position: absolute;
-    top: -60px; left: 50%; transform: translateX(-50%);
-    width: 500px; height: 200px;
-    background: radial-gradient(ellipse, rgba(79,142,247,0.15) 0%, transparent 70%);
+    top: -50px; left: 50%; transform: translateX(-50%);
+    width: 480px; height: 180px;
+    background: radial-gradient(ellipse, rgba(200,200,200,0.06) 0%, transparent 70%);
     pointer-events: none;
 }
 .hero-title {
     font-size: 2rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.5px;
-    background: linear-gradient(90deg, #7eb3ff, #4f8ef7, #a78bfa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #f0f0f0 !important;
     margin-bottom: 0.5rem !important;
 }
-.hero-sub {
-    color: #8b9cbf !important;
-    font-size: 0.97rem !important;
-    line-height: 1.6;
-    max-width: 640px;
-    margin: 0 auto !important;
+.hero-badge {
+    display: inline-block;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 0.2rem 0.9rem;
+    font-size: 0.75rem;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
 }
-
-/* ── Status badge ── */
-.status-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    background: #111827;
-    border: 1px solid #1e3a5f;
-    border-left: 4px solid #4f8ef7;
-    border-radius: 10px;
-    padding: 0.65rem 1.1rem;
-    margin-bottom: 1.2rem;
-    font-size: 0.9rem;
-    color: #94b8e8;
+.hero-sub {
+    color: #777 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.7;
+    max-width: 600px;
+    margin: 0 auto !important;
 }
 
 /* ── Control panel ── */
 .control-panel {
-    background: #111827;
-    border: 1px solid #1e293b;
+    background: #111111;
+    border: 1px solid #252525;
     border-radius: 14px;
     padding: 1.4rem !important;
 }
 
 /* ── Section cards ── */
 .section-card {
-    background: #111827;
-    border: 1px solid #1e293b;
+    background: #111111;
+    border: 1px solid #252525;
     border-radius: 14px;
     padding: 1.2rem 1.4rem;
     margin-top: 1rem;
@@ -394,29 +389,31 @@ body, .gradio-container {
 .image-panel .wrap {
     border-radius: 12px !important;
     overflow: hidden;
-    border: 1px solid #1e293b !important;
-    background: #0d1117 !important;
+    border: 1px solid #252525 !important;
+    background: #0a0a0a !important;
 }
 .image-panel label span {
     font-weight: 600 !important;
     font-size: 0.82rem !important;
     letter-spacing: 0.3px;
+    color: #aaa !important;
 }
 
 /* ── Run button ── */
 .run-btn {
-    background: linear-gradient(135deg, #3b7cf4, #5b5ef4) !important;
+    background: #e4e4e4 !important;
     border: none !important;
     border-radius: 10px !important;
     font-weight: 700 !important;
     font-size: 1rem !important;
     letter-spacing: 0.3px;
-    box-shadow: 0 4px 20px rgba(79,142,247,0.35) !important;
+    color: #0d0d0d !important;
+    box-shadow: 0 2px 12px rgba(255,255,255,0.08) !important;
     transition: all 0.2s ease !important;
-    color: #fff !important;
 }
 .run-btn:hover {
-    box-shadow: 0 6px 28px rgba(79,142,247,0.55) !important;
+    background: #ffffff !important;
+    box-shadow: 0 4px 20px rgba(255,255,255,0.18) !important;
     transform: translateY(-1px);
 }
 
@@ -427,49 +424,59 @@ body, .gradio-container {
     font-size: 0.92rem;
 }
 .metrics-card th {
-    background: #1a2033;
-    color: #7eb3ff;
+    background: #1a1a1a;
+    color: #c0c0c0;
     padding: 0.55rem 0.9rem;
     font-weight: 600;
-    border-bottom: 2px solid #2a3550;
+    border-bottom: 2px solid #2c2c2c;
 }
 .metrics-card td {
     padding: 0.55rem 0.9rem;
-    border-bottom: 1px solid #1a2033;
-    color: #c8d6f0;
+    border-bottom: 1px solid #1e1e1e;
+    color: #b0b0b0;
 }
 .metrics-card tr:last-child td { border-bottom: none; }
-.metrics-card tr:hover td { background: #141c2e; }
+.metrics-card tr:hover td { background: #161616; }
 .metrics-card blockquote {
-    border-left: 3px solid #4f8ef7;
+    border-left: 3px solid #444;
     margin: 0.8rem 0 0;
     padding: 0.5rem 0.9rem;
-    color: #7a9cc4;
+    color: #666;
     font-size: 0.87rem;
-    background: #0d1525;
+    background: #0f0f0f;
     border-radius: 0 8px 8px 0;
+}
+
+/* ── Section headings ── */
+.section-card h3, .control-panel h3 {
+    color: #c8c8c8 !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.2px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 0.8rem !important;
 }
 
 /* ── Accordion ── */
 .accordion {
-    background: #111827 !important;
-    border: 1px solid #1e293b !important;
+    background: #111111 !important;
+    border: 1px solid #252525 !important;
     border-radius: 12px !important;
     margin-top: 1rem !important;
 }
 .accordion .label-wrap span {
-    color: #94b8e8 !important;
+    color: #888 !important;
     font-weight: 600;
 }
 
-/* ── Divider / footer ── */
-.footer-text { color: #3a4a66 !important; font-size: 0.82rem !important; text-align: center; }
+/* ── Footer ── */
+.footer-text { color: #333 !important; font-size: 0.82rem !important; text-align: center; }
 
 /* ── Inputs ── */
 select, .gr-dropdown {
-    background: #0d1525 !important;
-    border-color: #1e293b !important;
-    color: #c8d6f0 !important;
+    background: #0f0f0f !important;
+    border-color: #252525 !important;
+    color: #b0b0b0 !important;
 }
 """
 
@@ -480,17 +487,15 @@ with gr.Blocks(title="TACNet — Task-Aware Image Compression") as demo:
     # ── Hero Header ───────────────────────────────────────────────────────────
     gr.HTML("""
     <div class="hero-wrap">
-        <div class="hero-title">TACNet &mdash; Task-Aware Image Compression</div>
+        <div class="hero-badge">Neural Image Compression</div>
+        <div class="hero-title">TACNet &mdash; Task-Aware Compression</div>
         <div class="hero-sub">
-            Compress images <strong style="color:#7eb3ff">to be understood</strong>, not just to look good.<br>
-            TACNet jointly optimises <em>Rate &ndash; Distortion &ndash; Task</em> loss to preserve
-            classification accuracy at low bitrates.
+            Compress images <strong style="color:#d0d0d0">to be understood</strong>, not just to look good.
+            Jointly optimises <em>Rate &ndash; Distortion &ndash; Task</em> loss
+            to preserve classification accuracy at low bitrates.
         </div>
     </div>
     """)
-
-    # ── Status bar ────────────────────────────────────────────────────────────
-    gr.HTML(f'<div class="status-wrap">{_status_message()}</div>')
 
     # ── Main row ──────────────────────────────────────────────────────────────
     with gr.Row(equal_height=True):
